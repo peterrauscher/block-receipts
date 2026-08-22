@@ -1,0 +1,38 @@
+[data-br-receipt] {
+  margin-top: 8px;
+  width: 100%;
+}
+
+.br-chip-inner {
+  display: grid;
+  gap: 6px;
+  padding: 12px 0 4px;
+  border-top: 1px solid #222;
+  color: #ffffff;
+  font-family: Inter, Helvetica, Arial, sans-serif;
+  font-size: 14px;
+  line-height: 1.45;
+}
+
+.br-chip-kicker,
+.br-chip-link {
+  font-family: "JetBrains Mono", ui-monospace, SFMono-Regular, Menlo, monospace;
+  font-size: 11px;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: #9a9a9a;
+}
+
+.br-chip-reason {
+  color: #ffffff;
+}
+
+.br-chip-link {
+  width: max-content;
+  color: #ffffff;
+  text-decoration: none;
+}
+
+.br-chip-link:hover {
+  text-decoration: underline;
+}
