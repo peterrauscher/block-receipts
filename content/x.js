@@ -529,7 +529,7 @@
       textarea {
         width: 100%;
         box-sizing: border-box;
-        resize: vertical;
+        resize: none;
         min-height: 88px;
         background: #ffffff;
         color: #0f1419;
