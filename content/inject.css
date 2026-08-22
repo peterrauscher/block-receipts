@@ -1,38 +1,53 @@
 [data-br-receipt] {
-  margin-top: 8px;
-  width: 100%;
+  margin: 0 16px 8px 68px;
+  width: calc(100% - 84px);
 }
 
 .br-chip-inner {
   display: grid;
-  gap: 6px;
-  padding: 12px 0 4px;
-  border-top: 1px solid #222;
-  color: #ffffff;
-  font-family: Inter, Helvetica, Arial, sans-serif;
-  font-size: 14px;
-  line-height: 1.45;
+  gap: 2px;
+  padding: 10px 12px;
+  border: 1px solid #eff3f4;
+  border-radius: 16px;
+  background: #f7f9f9;
+  color: #0f1419;
+  font-family: TwitterChirp, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+  font-size: 13px;
+  line-height: 16px;
 }
 
-.br-chip-kicker,
-.br-chip-link {
-  font-family: "JetBrains Mono", ui-monospace, SFMono-Regular, Menlo, monospace;
-  font-size: 11px;
-  letter-spacing: 0.12em;
-  text-transform: uppercase;
-  color: #9a9a9a;
+.br-chip-kicker {
+  color: #536471;
 }
 
 .br-chip-reason {
-  color: #ffffff;
+  color: #0f1419;
+  font-size: 15px;
+  line-height: 20px;
 }
 
 .br-chip-link {
   width: max-content;
-  color: #ffffff;
+  margin-top: 4px;
+  color: #1d9bf0;
+  font-weight: 700;
   text-decoration: none;
 }
 
 .br-chip-link:hover {
   text-decoration: underline;
+}
+
+[data-br-receipt][data-theme="dark"] .br-chip-inner {
+  border-color: #2f3336;
+  background: #16181c;
+  color: #e7e9ea;
+}
+
+[data-br-receipt][data-theme="dark"] .br-chip-kicker {
+  color: #71767b;
+}
+
+[data-br-receipt][data-theme="dark"] .br-chip-reason {
+  color: #e7e9ea;
 }

@@ -265,6 +265,14 @@
     return `${text.slice(0, length - 1)}…`;
   }
 
+  function pageTheme() {
+    const color = getComputedStyle(document.body).color;
+    const rgb = color.match(/\d+/g);
+    if (!rgb) return "light";
+    const [r, g, b] = rgb.map(Number);
+    return r + g + b > 500 ? "dark" : "light";
+  }
+
   function ensureHost() {
     if (ui.host?.isConnected) return ui.shadow;
     ui.host = document.createElement("div");
@@ -280,18 +288,17 @@
     const shadow = ensureHost();
     const layer = shadow.getElementById("layer");
     layer.innerHTML = `
-      <div class="scrim" role="presentation">
+      <div class="scrim" role="presentation" data-theme="${pageTheme()}">
         <div class="sheet" role="dialog" aria-modal="true" aria-labelledby="br-title">
-          <p class="kicker">Block receipt</p>
-          <h2 id="br-title">Why this account?</h2>
-          <p class="lede">@${receipt.handle} was blocked from their profile. Write the reason you want to remember.</p>
+          <h2 id="br-title">Why did you block @${escapeHtml(receipt.handle)}?</h2>
+          <p class="lede">Saved only in Block Receipts. X does not see this note.</p>
           <label class="field">
-            <span>Reason</span>
-            <textarea id="br-reason" rows="4" maxlength="400" placeholder="Harassment in replies">${escapeHtml(receipt.reason)}</textarea>
+            <span class="vh">Reason</span>
+            <textarea id="br-reason" rows="3" maxlength="400" placeholder="Add a reason">${escapeHtml(receipt.reason)}</textarea>
           </label>
           <div class="actions">
-            <button type="button" class="ghost" id="br-skip">Skip</button>
             <button type="button" class="solid" id="br-save">Save</button>
+            <button type="button" class="ghost" id="br-skip">Not now</button>
           </div>
         </div>
       </div>
@@ -445,9 +452,10 @@
     const wrap = document.createElement("div");
     wrap.dataset.brReceipt = receipt.handle;
     wrap.dataset.brKey = receiptKey(receipt);
+    wrap.dataset.theme = pageTheme();
     wrap.className = "br-chip";
     const reason = receipt.reason || "No reason saved";
-    const source = receipt.source === "tweet" ? "From a post" : "From profile";
+    const source = receipt.source === "tweet" ? "Blocked from a post" : "Blocked from their profile";
     wrap.innerHTML = `
       <div class="br-chip-inner">
         <span class="br-chip-kicker">${source}</span>
@@ -474,115 +482,108 @@
   }
 
   function shadowStyles() {
-    const inter = chrome.runtime.getURL("fonts/inter-latin-400-normal.woff2");
-    const mono = chrome.runtime.getURL("fonts/jetbrains-mono-latin-400-normal.woff2");
     return `
-      @font-face {
-        font-family: "BR Inter";
-        font-style: normal;
-        font-weight: 400;
-        font-display: swap;
-        src: url("${inter}") format("woff2");
-      }
-      @font-face {
-        font-family: "BR JetBrains Mono";
-        font-style: normal;
-        font-weight: 400;
-        font-display: swap;
-        src: url("${mono}") format("woff2");
-      }
       :host { all: initial; }
       .scrim {
         position: fixed;
         inset: 0;
         z-index: 2147483646;
-        background: rgba(0, 0, 0, 0.72);
+        background: rgba(91, 112, 131, 0.4);
         display: grid;
         place-items: center;
         padding: 32px 16px;
+        font-family: TwitterChirp, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
       }
       .sheet {
-        width: min(440px, 100%);
-        background: #050505;
-        color: #ffffff;
-        border: 1px solid #9a9a9a;
-        border-radius: 2px;
-        padding: 24px;
-        font-family: "BR Inter", Inter, Helvetica, Arial, sans-serif;
+        width: min(320px, 100%);
+        background: #ffffff;
+        color: #0f1419;
+        border-radius: 16px;
+        padding: 32px;
       }
-      .kicker {
-        margin: 0 0 16px;
-        font-family: "BR JetBrains Mono", ui-monospace, monospace;
-        font-size: 11.5px;
-        letter-spacing: 0.12em;
-        text-transform: uppercase;
-        color: #9a9a9a;
+      .scrim[data-theme="dark"] .sheet {
+        background: #000000;
+        color: #e7e9ea;
       }
       h2 {
         margin: 0;
-        font-size: 28px;
-        font-weight: 400;
-        letter-spacing: -0.03em;
+        font-size: 20px;
+        font-weight: 700;
+        line-height: 24px;
       }
       .lede {
-        margin: 12px 0 24px;
-        color: #9a9a9a;
+        margin: 8px 0 20px;
+        color: #536471;
         font-size: 15px;
-        line-height: 1.55;
+        line-height: 20px;
       }
-      .field {
-        display: grid;
-        gap: 8px;
-        font-family: "BR JetBrains Mono", ui-monospace, monospace;
-        font-size: 11.5px;
-        letter-spacing: 0.12em;
-        text-transform: uppercase;
-        color: #9a9a9a;
+      .scrim[data-theme="dark"] .lede { color: #71767b; }
+      .vh {
+        position: absolute;
+        width: 1px;
+        height: 1px;
+        overflow: hidden;
+        clip: rect(0 0 0 0);
       }
+      .field { display: block; }
       textarea {
         width: 100%;
         box-sizing: border-box;
         resize: vertical;
-        min-height: 112px;
-        background: #000000;
-        color: #ffffff;
-        border: 1px solid #9a9a9a;
-        border-radius: 0;
+        min-height: 88px;
+        background: #ffffff;
+        color: #0f1419;
+        border: 1px solid #cfd9de;
+        border-radius: 4px;
         padding: 12px;
-        font-family: "BR Inter", Inter, Helvetica, Arial, sans-serif;
-        font-size: 15px;
-        line-height: 1.55;
-        letter-spacing: 0;
-        text-transform: none;
+        font: inherit;
+        font-size: 17px;
+        line-height: 24px;
+      }
+      .scrim[data-theme="dark"] textarea {
+        background: #000000;
+        color: #e7e9ea;
+        border-color: #333639;
       }
       textarea:focus {
-        outline: 1px solid #ffffff;
-        outline-offset: 0;
+        outline: 2px solid #1d9bf0;
+        border-color: #1d9bf0;
       }
       .actions {
-        display: flex;
-        justify-content: flex-end;
-        gap: 16px;
-        margin-top: 24px;
+        display: grid;
+        gap: 12px;
+        margin-top: 20px;
       }
       button {
-        font-family: "BR Inter", Inter, Helvetica, Arial, sans-serif;
-        font-size: 14px;
+        font: inherit;
+        font-size: 15px;
+        font-weight: 700;
         border: 0;
-        border-radius: 0;
+        border-radius: 9999px;
+        min-height: 44px;
         cursor: pointer;
+      }
+      .solid {
+        background: #0f1419;
+        color: #ffffff;
+      }
+      .scrim[data-theme="dark"] .solid {
+        background: #eff3f4;
+        color: #0f1419;
       }
       .ghost {
         background: transparent;
-        color: #9a9a9a;
-        padding: 12px 8px;
+        color: #0f1419;
+        border: 1px solid #cfd9de;
       }
-      .solid {
-        background: #ffffff;
-        color: #000000;
-        padding: 12px 20px;
+      .scrim[data-theme="dark"] .ghost {
+        color: #eff3f4;
+        border-color: #536471;
       }
-      .solid:active, .ghost:active { transform: translateY(1px); }
+      .solid:hover { background: #272c30; }
+      .scrim[data-theme="dark"] .solid:hover { background: #d7dbdc; }
+      .ghost:hover { background: rgba(15, 20, 25, 0.1); }
+      .scrim[data-theme="dark"] .ghost:hover { background: rgba(239, 243, 244, 0.1); }
     `;
   }
 })();

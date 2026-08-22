@@ -53,16 +53,5 @@
       "css": ["content/inject.css"],
       "run_at": "document_idle"
     }
-  ],
-  "web_accessible_resources": [
-    {
-      "resources": ["fonts/*"],
-      "matches": [
-        "https://x.com/*",
-        "https://twitter.com/*",
-        "https://mobile.x.com/*",
-        "https://mobile.twitter.com/*"
-      ]
-    }
   ]
 }
