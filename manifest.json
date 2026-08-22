@@ -1,0 +1,68 @@
+{
+  "manifest_version": 3,
+  "name": "Block Receipts",
+  "version": "1.0.0",
+  "description": "Remember why you blocked someone on X.",
+  "minimum_chrome_version": "111",
+  "icons": {
+    "16": "icons/icon16.png",
+    "32": "icons/icon32.png",
+    "48": "icons/icon48.png",
+    "128": "icons/icon128.png"
+  },
+  "action": {
+    "default_title": "Block Receipts",
+    "default_popup": "popup/popup.html",
+    "default_icon": {
+      "16": "icons/icon16.png",
+      "32": "icons/icon32.png",
+      "48": "icons/icon48.png",
+      "128": "icons/icon128.png"
+    }
+  },
+  "background": {
+    "service_worker": "background.js"
+  },
+  "permissions": ["storage"],
+  "host_permissions": [
+    "https://x.com/*",
+    "https://twitter.com/*",
+    "https://mobile.x.com/*",
+    "https://mobile.twitter.com/*"
+  ],
+  "content_scripts": [
+    {
+      "matches": [
+        "https://x.com/*",
+        "https://twitter.com/*",
+        "https://mobile.x.com/*",
+        "https://mobile.twitter.com/*"
+      ],
+      "js": ["content/page-hook.js"],
+      "run_at": "document_start",
+      "world": "MAIN"
+    },
+    {
+      "matches": [
+        "https://x.com/*",
+        "https://twitter.com/*",
+        "https://mobile.x.com/*",
+        "https://mobile.twitter.com/*"
+      ],
+      "js": ["shared/storage.js", "content/x.js"],
+      "css": ["content/inject.css"],
+      "run_at": "document_idle"
+    }
+  ],
+  "web_accessible_resources": [
+    {
+      "resources": ["fonts/*"],
+      "matches": [
+        "https://x.com/*",
+        "https://twitter.com/*",
+        "https://mobile.x.com/*",
+        "https://mobile.twitter.com/*"
+      ]
+    }
+  ]
+}
