@@ -65,7 +65,8 @@ function renderList() {
 
   listEl.replaceChildren();
   emptyEl.hidden = items.length > 0;
-  countEl.textContent = items.length ? `${items.length} stored` : "";
+  countEl.hidden = items.length === 0;
+  countEl.textContent = items.length === 1 ? "1 receipt" : `${items.length} receipts`;
 
   for (const item of items) {
     listEl.appendChild(renderReceipt(item));

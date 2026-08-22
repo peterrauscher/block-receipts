@@ -8,22 +8,27 @@
   </head>
   <body>
     <div class="app">
-      <header class="mast">
-        <p class="kicker">X / receipts</p>
+      <header class="top">
         <h1>Block Receipts</h1>
       </header>
 
       <nav class="tabs" aria-label="Sections">
-        <button type="button" class="tab is-active" data-tab="receipts">Receipts</button>
-        <button type="button" class="tab" data-tab="settings">Settings</button>
+        <button type="button" class="tab is-active" data-tab="receipts">
+          <span>Receipts</span>
+        </button>
+        <button type="button" class="tab" data-tab="settings">
+          <span>Settings</span>
+        </button>
       </nav>
 
       <section id="panel-receipts" class="panel">
-        <label class="search">
-          <span>Search</span>
-          <input id="search" type="search" placeholder="Handle or reason" autocomplete="off" />
-        </label>
-        <p id="count" class="meta"></p>
+        <div class="search-wrap">
+          <label class="search">
+            <span class="vh">Search receipts</span>
+            <input id="search" type="search" placeholder="Search receipts" autocomplete="off" />
+          </label>
+        </div>
+        <p id="count" class="count" hidden></p>
         <div id="list" class="list"></div>
         <div id="empty" class="empty" hidden>
           <p class="empty-title">No receipts yet</p>
@@ -32,19 +37,19 @@
       </section>
 
       <section id="panel-settings" class="panel" hidden>
-        <label class="toggle">
-          <input id="promptOnProfileBlock" type="checkbox" />
+        <label class="setting">
           <span>
             <strong>Ask on profile blocks</strong>
-            <em>Show a reason prompt when you block from a profile page.</em>
+            <em>Show a reason prompt when you block from a profile.</em>
           </span>
+          <input id="promptOnProfileBlock" type="checkbox" />
         </label>
-        <label class="toggle">
-          <input id="injectOnBlockedPage" type="checkbox" />
+        <label class="setting">
           <span>
             <strong>Show reasons on X</strong>
-            <em>Inject saved reasons into Settings / Blocked accounts.</em>
+            <em>Add saved reasons to Settings, Blocked accounts.</em>
           </span>
+          <input id="injectOnBlockedPage" type="checkbox" />
         </label>
       </section>
     </div>
