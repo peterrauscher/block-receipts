@@ -23,8 +23,13 @@
     lastTweet: null,
     pending: null,
     savedAt: 0,
-    modalOpen: false
+    modalOpen: false,
+    settings: { ...BlockReceipts.DEFAULT_SETTINGS },
+    receipts: {}
   };
+
+  let refreshTimer = 0;
+  let refreshMaxTimer = 0;
 
   const ui = {
     host: null,
@@ -32,12 +37,12 @@
   };
 
   init();
-
   function init() {
     document.addEventListener("click", onClick, true);
     window.addEventListener("message", onPageMessage);
     window.addEventListener("popstate", scheduleRefresh);
     observeDom();
+    void hydrate();
     scheduleRefresh();
   }
 
@@ -220,7 +225,7 @@
       reason: existing?.reason || (onProfile ? "" : "Blocked on X"),
       tweetUrl: existing?.tweetUrl || "",
       tweetText: existing?.tweetText || "",
-      profileUrl: profile?.profileUrl || `https://x.com/${normalized}`
+      profileUrl: onProfile ? profile.profileUrl : `https://x.com/${normalized}`
     };
 
     if (onProfile && settings.promptOnProfileBlock && !state.modalOpen) {
@@ -326,56 +331,106 @@
   }
 
   function observeDom() {
-    const observer = new MutationObserver(() => scheduleRefresh());
+    const observer = new MutationObserver((mutations) => {
+      if (mutations.every(isInternalMutation)) return;
+      scheduleRefresh();
+    });
     observer.observe(document.documentElement, { childList: true, subtree: true });
     chrome.storage.onChanged.addListener((changes, area) => {
-      if (area === "local" && changes.receipts) scheduleRefresh();
-      if (area === "sync" && changes.settings) scheduleRefresh();
+      if (area === "local" && changes.receipts) {
+        state.receipts = changes.receipts.newValue || {};
+        scheduleRefresh();
+      }
+      if (area === "sync" && changes.settings) {
+        state.settings = { ...BlockReceipts.DEFAULT_SETTINGS, ...(changes.settings.newValue || {}) };
+        scheduleRefresh();
+      }
     });
   }
 
-  async function refreshBlockedPage() {
+  async function hydrate() {
+    try {
+      state.settings = await BlockReceipts.getSettings();
+      state.receipts = await BlockReceipts.getReceipts();
+    } catch {
+      return;
+    }
+    scheduleRefresh();
+  }
+
+  function isInternalMutation(mutation) {
+    const nodes = [mutation.target, ...mutation.addedNodes, ...mutation.removedNodes];
+    return nodes.every((node) => {
+      const el = node instanceof Element ? node : node?.parentElement;
+      return !!el?.closest?.("[data-br-receipt], #block-receipts-root");
+    });
+  }
+
+
+  function scheduleRefresh() {
+    window.clearTimeout(refreshTimer);
+    refreshTimer = window.setTimeout(refreshBlockedPage, 80);
+    if (!refreshMaxTimer) {
+      refreshMaxTimer = window.setTimeout(refreshBlockedPage, 400);
+    }
+  }
+
+  function refreshBlockedPage() {
+    window.clearTimeout(refreshTimer);
+    window.clearTimeout(refreshMaxTimer);
+    refreshTimer = 0;
+    refreshMaxTimer = 0;
+
     if (!isBlockedPage()) {
       document.querySelectorAll("[data-br-receipt]").forEach((node) => node.remove());
       return;
     }
-    const settings = await BlockReceipts.getSettings();
-    if (!settings.injectOnBlockedPage) {
+    if (!state.settings.injectOnBlockedPage) {
       document.querySelectorAll("[data-br-receipt]").forEach((node) => node.remove());
       return;
     }
 
-    const receipts = await BlockReceipts.getReceipts();
+    const receipts = state.receipts;
     document.querySelectorAll("[data-br-receipt]").forEach((node) => {
-      const current = receipts[node.dataset.brReceipt];
-      if (!current) node.remove();
+      if (!receipts[node.dataset.brReceipt]) node.remove();
     });
 
-    const cells = findUserCells();
-    for (const cell of cells) {
+    for (const cell of findUserCells()) {
       const handle = handleFromCell(cell);
       if (!handle) continue;
       const receipt = receipts[handle];
-      const existing = cell.querySelector("[data-br-receipt]");
+      const existing = chipBeside(cell, handle);
       if (!receipt) {
         existing?.remove();
         continue;
       }
+      if (existing && existing.dataset.brKey === receiptKey(receipt)) continue;
       const chip = renderReceiptChip(receipt);
-      if (existing) {
-        existing.replaceWith(chip);
-      } else {
-        cell.appendChild(chip);
-      }
+      if (existing) existing.replaceWith(chip);
+      else cell.insertAdjacentElement("afterend", chip);
     }
   }
 
+  function chipBeside(cell, handle) {
+    const next = cell.nextElementSibling;
+    if (next?.matches?.("[data-br-receipt]") && next.dataset.brReceipt === handle) {
+      return next;
+    }
+    return cell.querySelector("[data-br-receipt]");
+  }
+
+  function receiptKey(receipt) {
+    return [receipt.handle, receipt.source, receipt.reason, receipt.tweetUrl].join("|");
+  }
+
   function findUserCells() {
-    const nodes = [
-      ...document.querySelectorAll('[data-testid="UserCell"]'),
-      ...document.querySelectorAll('[data-testid="cellInnerDiv"]')
-    ];
-    return nodes.filter((node, index, list) => list.indexOf(node) === index && handleFromCell(node));
+    const preferred = [...document.querySelectorAll('[data-testid="UserCell"]')];
+    if (preferred.length) {
+      return preferred.filter((node, index, list) => list.indexOf(node) === index && handleFromCell(node));
+    }
+    return [...document.querySelectorAll('[data-testid="cellInnerDiv"]')].filter(
+      (node, index, list) => list.indexOf(node) === index && handleFromCell(node)
+    );
   }
 
   function handleFromCell(cell) {
@@ -389,6 +444,7 @@
   function renderReceiptChip(receipt) {
     const wrap = document.createElement("div");
     wrap.dataset.brReceipt = receipt.handle;
+    wrap.dataset.brKey = receiptKey(receipt);
     wrap.className = "br-chip";
     const reason = receipt.reason || "No reason saved";
     const source = receipt.source === "tweet" ? "From a post" : "From profile";
