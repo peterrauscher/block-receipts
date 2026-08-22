@@ -1,0 +1,54 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Block Receipts</title>
+    <link rel="stylesheet" href="popup.css" />
+  </head>
+  <body>
+    <div class="app">
+      <header class="mast">
+        <p class="kicker">X / receipts</p>
+        <h1>Block Receipts</h1>
+      </header>
+
+      <nav class="tabs" aria-label="Sections">
+        <button type="button" class="tab is-active" data-tab="receipts">Receipts</button>
+        <button type="button" class="tab" data-tab="settings">Settings</button>
+      </nav>
+
+      <section id="panel-receipts" class="panel">
+        <label class="search">
+          <span>Search</span>
+          <input id="search" type="search" placeholder="Handle or reason" autocomplete="off" />
+        </label>
+        <p id="count" class="meta"></p>
+        <div id="list" class="list"></div>
+        <div id="empty" class="empty" hidden>
+          <p class="empty-title">No receipts yet</p>
+          <p>Block someone from a post and that post is stored as the reason. Profile blocks can ask you first.</p>
+        </div>
+      </section>
+
+      <section id="panel-settings" class="panel" hidden>
+        <label class="toggle">
+          <input id="promptOnProfileBlock" type="checkbox" />
+          <span>
+            <strong>Ask on profile blocks</strong>
+            <em>Show a reason prompt when you block from a profile page.</em>
+          </span>
+        </label>
+        <label class="toggle">
+          <input id="injectOnBlockedPage" type="checkbox" />
+          <span>
+            <strong>Show reasons on X</strong>
+            <em>Inject saved reasons into Settings / Blocked accounts.</em>
+          </span>
+        </label>
+      </section>
+    </div>
+    <script src="../shared/storage.js"></script>
+    <script src="popup.js"></script>
+  </body>
+</html>
